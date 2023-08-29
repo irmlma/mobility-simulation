@@ -11,17 +11,43 @@ import datetime
 from joblib import Parallel, delayed
 import contextlib
 import joblib
+import yaml
 
 
 # pairwise distance
 from scipy.spatial.distance import pdist, squareform
 
 
-def get_waitTime():
-    """Wait time (duration) distribution. Emperically determined from data."""
-    mu, sigma = 0.75, 1.49
+class Environment:
+    def __init__(self, config_path):
+        self.config = yaml.safe_load(open(config_path))
 
-    return np.random.lognormal(mu, sigma, 1)[0]
+        # print(self.config)
+
+    def simulate(self):
+        pass
+
+    def simulate_agent(self):
+        pass
+
+    def simulate_agent_step(self):
+        pass
+
+    def get_wait_time(self):
+        """Wait time (duration) distribution. Emperically determined from data."""
+        return np.random.lognormal(self.config["wait"]["mu"], self.config["wait"]["sigma"], 1)[0]
+
+    def get_jump(self):
+        """Jump length distribution. Emperically determined from data."""
+        return np.random.lognormal(self.config["jump"]["mu"], self.config["jump"]["sigma"], 1)[0]
+
+    def get_rho(self):
+        """This is learned from the emperical dataset"""
+        return np.random.normal(self.config["rho"]["mu"], self.config["rho"]["sigma"], 1)[0]
+
+    def get_gamma(self):
+        """This is learned from the emperical dataset"""
+        return np.random.normal(self.config["gamma"]["mu"], self.config["gamma"]["sigma"], 1)[0]
 
 
 def get_initUser(user_df):
@@ -30,26 +56,6 @@ def get_initUser(user_df):
     Only useful in combination with deterministic get_initLoc()
     """
     return np.random.choice(user_df["user_id"].unique())
-
-
-def get_jump():
-    """Jump length distribution. Emperically determined from data."""
-    # parameters from the learned log-normal: 7.723, 2.377
-    mu, sigma = 7.72, 2.38
-
-    return np.random.lognormal(mu, sigma, 1)[0]
-
-
-def get_rhoP():
-    """This is learned from the emperical dataset"""
-    mu, sigma = 0.64, 0.16
-    return np.random.normal(mu, sigma, 1)[0]
-
-
-def get_gammaP():
-    """This is learned from the emperical dataset"""
-    mu, sigma = 0.18, 0.069
-    return np.random.normal(mu, sigma, 1)[0]
 
 
 def get_initLoc(home_locs, user):

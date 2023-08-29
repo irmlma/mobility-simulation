@@ -20,7 +20,7 @@ np.random.seed(0)
 random.seed(0)
 
 
-class dtEpr:
+class DTEpr:
     def __init__(self):
         pass
 

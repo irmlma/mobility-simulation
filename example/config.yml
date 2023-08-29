@@ -1,0 +1,23 @@
+
+# parameters from empirical distribution
+wait:
+  mu: 0.75
+  sigma: 1.49
+
+
+jump:
+  mu: 7.72
+  sigma: 2.38
+
+rho:
+  mu: 0.64
+  sigma: 0.16
+
+gamma:
+  mu: 0.18
+  sigma: 0.069
+
+P: 0
+
+location:
+user:
