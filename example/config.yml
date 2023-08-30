@@ -19,5 +19,5 @@ gamma:
 
 P: 0
 
-location:
-user:
+data_dir: "D:\\Code\\HAI-IRMA\\WP1\\npp\\data\\input"
+# user:

@@ -20,7 +20,7 @@ setup(
     author_email=("hongy@ethz.ch"),
     license="Apache-2.0",
     url="https://github.com/irmlma/mobility-simulation",
-    install_requires=["geopandas", "scipy", "numpy", "powerlaw", "tqdm", "joblib"],
+    install_requires=["geopandas", "scipy", "numpy", "pyyaml"],
     classifiers=[
         "License :: OSI Approved :: Apache Software License",
         "Intended Audience :: Science/Research",

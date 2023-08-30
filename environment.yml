@@ -7,6 +7,4 @@ dependencies:
   - geopandas
   - scipy
   - numpy
-  - powerlaw
-  - tqdm
-  - joblib
+  - pyyaml
