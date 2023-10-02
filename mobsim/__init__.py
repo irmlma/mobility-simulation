@@ -1,2 +1,2 @@
 from mobsim.env import Environment
-from mobsim.dt_epr import DTEpr
+from mobsim.models import DTEpr, DEpr
