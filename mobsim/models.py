@@ -57,8 +57,12 @@ class EPR:
         if len(loc_ls) == 0:  # init
             next_loc = self.get_init_loc(user)
         else:  # or generate
-            # the prob. of exploring
-            if_explore = rho * len(np.unique(loc_ls)) ** (-gamma)
+            if self.env.config["P"] != 0:
+                # hard intervention to P
+                if_explore = self.env.config["P"]
+            else:
+                # the prob. of exploring
+                if_explore = rho * len(np.unique(loc_ls)) ** (-gamma)
 
             if (np.random.rand() < if_explore) or (len(loc_ls) == 1):
                 # explore
@@ -115,105 +119,6 @@ class EPR:
         next_loc = np.random.choice(visited_loc)
 
         return next_loc
-
-
-class DTEpr(EPR):
-    """Density Transition EPR"""
-
-    def __init__(self, env: Environment, *args, **kwargs):
-        super().__init__(env, *args, **kwargs)
-        self.trans_matrix = self.build_emperical_markov_matrix()
-
-    def build_emperical_markov_matrix(self):
-        # initialize trans matrix with 0's
-        loc_size = self.env.loc_seq_df["location_id"].max() + 1
-        trans_matrix = np.zeros([loc_size, loc_size])
-
-        def _get_user_transition_ls(df):
-            ls = df["location_id"].values
-
-            res = []
-            for i in range(len(ls) - 1):
-                res.append([ls[i], ls[i + 1]])
-
-            return res
-
-        # transform transition list to matrix
-        tran_ls = self.env.loc_seq_df.groupby("user_id").apply(_get_user_transition_ls)
-        tran_ls = [x for xs in tran_ls.values for x in xs]
-        for tran in tran_ls:
-            trans_matrix[tran[0], tran[1]] += 1
-
-        return trans_matrix.astype(np.int16)
-
-    def simulate_agent_step(self, user, loc_ls, rho, gamma):
-        if len(loc_ls) == 0:  # init
-            next_loc = self.get_init_loc(user)
-        else:  # or generate
-            # the prob. of exploring
-            if_explore = rho * len(np.unique(loc_ls)) ** (-gamma)
-            # print(if_explore)
-
-            if (np.random.rand() < if_explore) or (len(loc_ls) == 1):
-                # explore
-                next_loc = self.explore(visited_loc=loc_ls)
-            else:
-                self.trans_matrix, next_loc = self.pref_return(visited_loc=loc_ls, emp_mat=self.trans_matrix)
-
-        return next_loc
-
-    def explore(self, visited_loc):
-        """The exploration step of the density epr model."""
-        attr = self.env.loc_gdf.copy()["count"].values
-
-        curr_loc = int(visited_loc[-1])
-        curr_attr = attr[curr_loc]
-
-        # delete the already visited locations
-        all_loc = set(visited_loc)
-        remain_idx = np.arange(attr.shape[0])
-        remain_idx = np.delete(remain_idx, list(all_loc))
-
-        # slight modification, original **2, and we changed to 1.7
-        r = (self.pair_distance[curr_loc, remain_idx] / 1000) ** (1.7)
-        # we also take the square root to reduce the density effect, otherwise too strong
-        attr = np.power((attr[remain_idx] * curr_attr), 0.5).astype(float)
-
-        # the density attraction + inverse distance
-        attr = np.divide(attr, r, out=np.zeros_like(attr), where=r != 0)
-
-        # norm
-        attr = attr / attr.sum()
-        selected_loc = np.random.choice(attr.shape[0], p=attr)
-        return remain_idx[selected_loc]
-
-    def pref_return(self, visited_loc, emp_mat):
-        # not able to return to the current location
-        visited_loc = np.array(visited_loc)
-        curr_loc = visited_loc[-1]
-
-        # delete the current location from the sequence
-        currloc_idx = np.where(visited_loc == curr_loc)[0]
-        # ensure the deleted sequence contain value
-        if len(currloc_idx) != len(visited_loc):
-            visited_loc = np.delete(visited_loc, currloc_idx)
-
-        # get the transition p from emperical matrix
-        curr_trans_p = emp_mat[curr_loc, :]
-        curr_trans_p = curr_trans_p[np.array(visited_loc)]
-
-        # equal p if no prior knowledge
-        if curr_trans_p.sum() == 0:
-            curr_trans_p = np.ones_like(curr_trans_p) / len(curr_trans_p)
-        else:
-            curr_trans_p = curr_trans_p / curr_trans_p.sum()
-
-        # choose next location according to emperical p
-        next_loc = np.random.choice(visited_loc, p=curr_trans_p)
-        # update
-        emp_mat[curr_loc, next_loc] += 1
-
-        return emp_mat, next_loc
 
 
 class DEpr(EPR):
@@ -283,7 +188,12 @@ class IPT(EPR):
             next_loc = self.get_init_loc(user)
         else:  # or generate
             # the prob. of exploring
-            if_explore = rho * len(np.unique(loc_ls)) ** (-gamma)
+            if self.env.config["P"] != 0:
+                # hard intervention to P
+                if_explore = self.env.config["P"]
+            else:
+                # the prob. of exploring
+                if_explore = rho * len(np.unique(loc_ls)) ** (-gamma)
 
             if (np.random.rand() < if_explore) or (len(loc_ls) == 1):
                 # explore
@@ -301,6 +211,109 @@ class IPT(EPR):
         # delete the current location from the sequence
         currloc_idx = np.where(visited_loc == curr_loc)[0]
 
+        # ensure the deleted sequence contain value
+        if len(currloc_idx) != len(visited_loc):
+            visited_loc = np.delete(visited_loc, currloc_idx)
+
+        # get the transition p from emperical matrix
+        curr_trans_p = emp_mat[curr_loc, :]
+        curr_trans_p = curr_trans_p[np.array(visited_loc)]
+
+        # equal p if no prior knowledge
+        if curr_trans_p.sum() == 0:
+            curr_trans_p = np.ones_like(curr_trans_p) / len(curr_trans_p)
+        else:
+            curr_trans_p = curr_trans_p / curr_trans_p.sum()
+
+        # choose next location according to emperical p
+        next_loc = np.random.choice(visited_loc, p=curr_trans_p)
+        # update
+        emp_mat[curr_loc, next_loc] += 1
+
+        return emp_mat, next_loc
+
+
+class DTEpr(EPR):
+    """Density Transition EPR"""
+
+    def __init__(self, env: Environment, *args, **kwargs):
+        super().__init__(env, *args, **kwargs)
+        self.trans_matrix = self.build_emperical_markov_matrix()
+
+    def build_emperical_markov_matrix(self):
+        # initialize trans matrix with 0's
+        loc_size = self.env.loc_seq_df["location_id"].max() + 1
+        trans_matrix = np.zeros([loc_size, loc_size])
+
+        def _get_user_transition_ls(df):
+            ls = df["location_id"].values
+
+            res = []
+            for i in range(len(ls) - 1):
+                res.append([ls[i], ls[i + 1]])
+
+            return res
+
+        # transform transition list to matrix
+        tran_ls = self.env.loc_seq_df.groupby("user_id").apply(_get_user_transition_ls)
+        tran_ls = [x for xs in tran_ls.values for x in xs]
+        for tran in tran_ls:
+            trans_matrix[tran[0], tran[1]] += 1
+
+        return trans_matrix.astype(np.int16)
+
+    def simulate_agent_step(self, user, loc_ls, rho, gamma):
+        if len(loc_ls) == 0:  # init
+            next_loc = self.get_init_loc(user)
+        else:  # or generate
+            # the prob. of exploring
+            if self.env.config["P"] != 0:
+                # hard intervention to P
+                if_explore = self.env.config["P"]
+            else:
+                # the prob. of exploring
+                if_explore = rho * len(np.unique(loc_ls)) ** (-gamma)
+
+            if (np.random.rand() < if_explore) or (len(loc_ls) == 1):
+                # explore
+                next_loc = self.explore(visited_loc=loc_ls)
+            else:
+                self.trans_matrix, next_loc = self.pref_return(visited_loc=loc_ls, emp_mat=self.trans_matrix)
+
+        return next_loc
+
+    def explore(self, visited_loc):
+        """The exploration step of the density epr model."""
+        attr = self.env.loc_gdf.copy()["count"].values
+
+        curr_loc = int(visited_loc[-1])
+        curr_attr = attr[curr_loc]
+
+        # delete the already visited locations
+        all_loc = set(visited_loc)
+        remain_idx = np.arange(attr.shape[0])
+        remain_idx = np.delete(remain_idx, list(all_loc))
+
+        # slight modification, original **2, and we changed to 1.7
+        r = (self.pair_distance[curr_loc, remain_idx] / 1000) ** (1.7)
+        # we also take the square root to reduce the density effect, otherwise too strong
+        attr = np.power((attr[remain_idx] * curr_attr), 0.5).astype(float)
+
+        # the density attraction + inverse distance
+        attr = np.divide(attr, r, out=np.zeros_like(attr), where=r != 0)
+
+        # norm
+        attr = attr / attr.sum()
+        selected_loc = np.random.choice(attr.shape[0], p=attr)
+        return remain_idx[selected_loc]
+
+    def pref_return(self, visited_loc, emp_mat):
+        # not able to return to the current location
+        visited_loc = np.array(visited_loc)
+        curr_loc = visited_loc[-1]
+
+        # delete the current location from the sequence
+        currloc_idx = np.where(visited_loc == curr_loc)[0]
         # ensure the deleted sequence contain value
         if len(currloc_idx) != len(visited_loc):
             visited_loc = np.delete(visited_loc, currloc_idx)

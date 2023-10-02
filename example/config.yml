@@ -1,23 +1,27 @@
 
 # parameters from empirical distribution
 wait:
+  type: "lognormal"
   mu: 0.75
   sigma: 1.49
 
-
 jump:
+  type: "lognormal"
   mu: 7.72
   sigma: 2.38
 
 rho:
+  type: "normal"
   mu: 0.64
   sigma: 0.16
 
 gamma:
+  type: "normal"
   mu: 0.18
   sigma: 0.069
 
-P: 0
+# shall be within [0, 1]; change to non 0 value to perform hard interventions
+P: 0.1
 
 data_dir: "D:\\Code\\HAI-IRMA\\WP1\\npp\\data\\input"
 # user:
