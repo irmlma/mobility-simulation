@@ -26,4 +26,3 @@ Parameters determined from empirical data is stored in `example/config.yml` file
 ## Known issues:
 - this package requires geopandas dependency, which is best installed via conda-forge; thus I included an environment file. I do not know how to define this in setup.py
 - pref_return for ipt needs personal empirical markov matrix. Currently we maintain a single matrix for the whole dataset. For GC this is less of an issue, as GC individuals do not often share locations. 
-- only `mobsim/df_epr.py` and `mobsim/env.py` is implemented.

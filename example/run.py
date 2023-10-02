@@ -1,10 +1,23 @@
 import argparse
 
+import numpy as np
+import random
+
 from mobsim import Environment
-from mobsim import DTEpr, DEpr, IPT
+from mobsim import DTEpr, DEpr, IPT, EPR
+
+
+def setup_seed(seed):
+    """
+    fix random seed for reproducing
+    """
+    np.random.seed(seed)
+    random.seed(seed)
 
 
 if __name__ == "__main__":
+    setup_seed(0)
+
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "pop_num",
@@ -23,7 +36,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     env = Environment("./example/config.yml")
-    simulator = IPT(env)
+    simulator = DTEpr(env)
 
     traj = simulator.simulate(seq_len=args.seq_len, pop_num=args.pop_num)
 
