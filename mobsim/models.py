@@ -345,4 +345,8 @@ def post_process(traj, loc_gdf):
     all_gdf = gpd.GeoDataFrame(all_df, geometry="center", crs="EPSG:2056")
     all_gdf = all_gdf.to_crs("EPSG:4326")
 
+    # Final cleaning
+    # gdf without empirical visit frequency
+    all_gdf = all_gdf.drop(columns={"count"}).rename(columns={"id": "location_id", "index": "sequence"})
+
     return all_gdf

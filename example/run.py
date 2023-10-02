@@ -33,10 +33,28 @@ if __name__ == "__main__":
         help="Length of generated location sequence for each user",
         default="20",
     )
+    parser.add_argument(
+        "model",
+        default="epr",
+        nargs="?",
+        choices=["epr", "ipt", "depr", "dtepr"],
+        help="Individual mobility model for generation (default: %(default)s)",
+    )
     args = parser.parse_args()
 
     env = Environment("./example/config.yml")
-    simulator = DTEpr(env)
+    if args.model == "epr":
+        simulator = EPR(env)
+    elif args.model == "ipt":
+        simulator = IPT(env)
+    elif args.model == "depr":
+        simulator = DEpr(env)
+    elif args.model == "dtepr":
+        simulator = DTEpr(env)
+    else:
+        raise AttributeError(
+            f"Model unknown. Please check the input arguement. We only support 'epr', 'ipt', 'depr', 'dtepr'. You passed {args.model}"
+        )
 
     traj = simulator.simulate(seq_len=args.seq_len, pop_num=args.pop_num)
 
