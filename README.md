@@ -21,7 +21,7 @@ Required input files for Environment:
 - Location visit sequence (empirical); csv file with columns `[user_id, location_id]`, row order shall follow visit sequence. Used for building the emperical markov matrix for IPT during preferential return. 
 - Location with geometry and visitation freqency (empirical); csv file with columns `[id, center, count]`. `center` shall be in `wkt` format in `EPSG:2056` projection, e.g., `POINT (2625338.71 1229204.85)`. Used for calculating distanced between locations, and determining the attractiveness for each location for the density-EPR model during exploration. 
 
-Parameters determined from empirical data is stored in `example/config.yml` file. Jump length and Wait time follows log-normal distribution, and rho and gamma follows normal distribution. 
+Parameters determined from empirical data is stored in `example/config.yml` file. Jump length and Wait time follows log-normal, power-lwa or truncated power-law distribution, and rho and gamma follows normal distribution. 
 
 ## Known issues:
 - this package requires geopandas dependency, which is best installed via conda-forge; thus I included an environment file. I do not know how to define this in setup.py

@@ -4,6 +4,8 @@ from shapely import wkt
 import numpy as np
 import os
 
+import powerlaw
+
 import yaml
 
 
@@ -25,11 +27,33 @@ class Environment:
 
     def get_wait_time(self):
         """Wait time (duration) distribution. Emperically determined from data."""
-        return np.random.lognormal(self.config["wait"]["mu"], self.config["wait"]["sigma"], 1)[0]
+        if self.config["wait"]["type"] == "lognormal":
+            return np.random.lognormal(self.config["wait"]["mu"], self.config["wait"]["sigma"], 1)[0]
+        elif self.config["wait"]["type"] == "powerlaw":
+            return powerlaw.Power_Law(parameters=[self.config["wait"]["alpha"]]).generate_random(n=1)[0]
+        elif self.config["wait"]["type"] == "truncpowerlaw":
+            return powerlaw.Truncated_Power_Law(
+                parameters=[self.config["wait"]["parameter1"], self.config["wait"]["parameter2"]]
+            ).generate_random(n=1)[0]
+        else:
+            raise AttributeError(
+                f"Distribution for wait time not supported. Please check the input arguement. We only support 'lognormal', 'powerlaw' or 'truncpowerlaw'. You passed {self.config['wait']['type']}"
+            )
 
     def get_jump(self):
         """Jump length distribution. Emperically determined from data."""
-        return np.random.lognormal(self.config["jump"]["mu"], self.config["jump"]["sigma"], 1)[0]
+        if self.config["jump"]["type"] == "lognormal":
+            return np.random.lognormal(self.config["jump"]["mu"], self.config["jump"]["sigma"], 1)[0]
+        elif self.config["jump"]["type"] == "powerlaw":
+            return powerlaw.Power_Law(parameters=[self.config["jump"]["alpha"]]).generate_random(n=1)[0]
+        elif self.config["jump"]["type"] == "truncpowerlaw":
+            return powerlaw.Truncated_Power_Law(
+                parameters=[self.config["jump"]["parameter1"], self.config["jump"]["parameter2"]]
+            ).generate_random(n=1)[0]
+        else:
+            raise AttributeError(
+                f"Distribution for jump lengths not supported. Please check the input arguement. We only support 'lognormal', 'powerlaw' or 'truncpowerlaw'. You passed {self.config['jump']['type']}"
+            )
 
     def get_rho(self):
         """This is learned from the emperical dataset"""
