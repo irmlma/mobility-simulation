@@ -1,7 +1,7 @@
 import argparse
 
 from mobsim import Environment
-from mobsim import DTEpr, DEpr
+from mobsim import DTEpr, DEpr, IPT
 
 
 if __name__ == "__main__":
@@ -23,7 +23,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     env = Environment("./example/config.yml")
-    simulator = DEpr(env)
+    simulator = IPT(env)
 
     traj = simulator.simulate(seq_len=args.seq_len, pop_num=args.pop_num)
 
