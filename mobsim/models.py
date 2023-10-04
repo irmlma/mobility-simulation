@@ -360,6 +360,8 @@ def post_process(traj, loc_gdf):
 
     # Final cleaning
     # gdf without empirical visit frequency
-    all_gdf = all_gdf.drop(columns={"count"}).rename(columns={"id": "location_id", "index": "sequence"})
+    all_gdf = all_gdf.drop(columns={"count"}).rename(
+        columns={"id": "location_id", "index": "sequence", "center": "geometry"}
+    )
 
     return all_gdf

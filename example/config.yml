@@ -2,7 +2,7 @@
 # parameters from empirical distribution
 wait:
   # could be lognormal, powerlaw or truncpowerlaw 
-  type: "truncpowerlaw"
+  type: "lognormal"
 
   # parameter for lognormal
   mu: 0.75
@@ -17,7 +17,7 @@ wait:
 
 jump:
   # could be lognormal, powerlaw or truncpowerlaw 
-  type: "truncpowerlaw"
+  type: "lognormal"
 
   # parameter for lognormal
   mu: 7.72
