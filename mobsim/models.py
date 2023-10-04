@@ -23,7 +23,7 @@ class EPR:
 
     def simulate(self, seq_len=20, pop_num=100):
         # get the user_id for generation
-        user_arr = np.tile(self.env.top_user_loc_df["user_id"].values, pop_num // 80 + 1)[:pop_num]
+        user_arr = np.random.choice(self.env.top_user_loc_df["user_id"].unique(), pop_num)
 
         for i in range(pop_num):
             res = self.simulate_agent(user_arr[i], seq_len)

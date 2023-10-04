@@ -35,7 +35,6 @@ Outputs location visit sequences with activity duration of a specified length (d
 
 
 ## Known issues:
-- selection of users hard coded. 
 - this package requires geopandas dependency, which is best installed via conda-forge; thus I included an environment file. I do not know how to define this in setup.py
 - pref_return for ipt needs personal empirical markov matrix. Currently we maintain a single matrix for the whole dataset. For GC this is less of an issue, as GC individuals do not often share locations. 
 
