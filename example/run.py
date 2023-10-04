@@ -59,3 +59,5 @@ if __name__ == "__main__":
     traj = simulator.simulate(seq_len=args.seq_len, pop_num=args.pop_num)
 
     print(traj)
+
+    traj.to_csv(f"data/output/{args.model}.csv")
