@@ -1,4 +1,5 @@
 import argparse
+import os
 
 import numpy as np
 import random
@@ -31,7 +32,7 @@ if __name__ == "__main__":
         type=int,
         nargs="?",
         help="Length of generated location sequence for each user",
-        default="100",
+        default="1000",
     )
     parser.add_argument(
         "model",
@@ -42,7 +43,7 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    env = Environment("./example/config.yml")
+    env = Environment(os.path.join("example", "config.yml"))
     if args.model == "epr":
         simulator = EPR(env)
     elif args.model == "ipt":
@@ -61,4 +62,8 @@ if __name__ == "__main__":
     print(traj)
 
     traj.index.name = "index"
-    traj.to_csv(f"data/output/{args.model}.csv")
+
+    path = os.path.join("data", "output")
+    if not os.path.exists(path):
+        os.makedirs(path)
+    traj.to_csv(os.path.join(path, f"{args.model}.csv"))
