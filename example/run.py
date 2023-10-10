@@ -25,7 +25,7 @@ if __name__ == "__main__":
         type=int,
         nargs="?",
         help="Population number to generate",
-        default="1000",
+        default="100",
     )
     parser.add_argument(
         "seq_len",
