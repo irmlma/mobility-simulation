@@ -13,17 +13,23 @@ class Environment:
     def __init__(self, config_path):
         self.config = yaml.safe_load(open(config_path))
 
-        # top location visited by each user (empirical)
-        # for determining the start location for simulation
-        self.top_user_loc_df = pd.read_csv(os.path.join(self.config["data_dir"], "top5_locs.csv"))
-
         # location visit sequence
         self.loc_seq_df = pd.read_csv(os.path.join(self.config["data_dir"], "loc_seq.csv"))
 
-        # location with geom and visitation freqency
-        loc_df = pd.read_csv(os.path.join(self.config["data_dir"], "loc_freq.csv"))
-        loc_df["center"] = loc_df["center"].apply(wkt.loads)
-        self.loc_gdf = gpd.GeoDataFrame(loc_df, geometry="center", crs="EPSG:2056")
+        # top location visited by each user (empirical)
+        # for determining the start location for simulation, we choose the top 5 as possible locations
+        self.top_user_loc_df = (
+            self.loc_seq_df.groupby(["user_id", "location_id"], as_index=False)
+            .size()
+            .sort_values(by="size", ascending=False)
+            .groupby(["user_id"])
+            .head(5)
+        )
+
+        # location with geom
+        loc_df = pd.read_csv(os.path.join(self.config["data_dir"], "locs.csv"))
+        loc_df["geometry"] = loc_df["geometry"].apply(wkt.loads)
+        self.loc_gdf = gpd.GeoDataFrame(loc_df, geometry="geometry", crs="EPSG:4326")
 
     def get_wait_time(self):
         """Wait time (duration) distribution. Emperically determined from data."""

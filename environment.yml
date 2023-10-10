@@ -9,3 +9,4 @@ dependencies:
   - numpy
   - pyyaml
   - powerlaw
+  - trackintel = 1.2.2

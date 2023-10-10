@@ -43,4 +43,4 @@ gamma:
 # shall be within [0, 1]; change to non 0 value to perform hard interventions
 P: 0.0
 
-data_dir: "D:\\Code\\HAI-IRMA\\WP1\\npp\\data\\input"
+data_dir: "./data/input"

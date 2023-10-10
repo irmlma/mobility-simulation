@@ -2,10 +2,12 @@ import pandas as pd
 import geopandas as gpd
 
 import numpy as np
-
+from tqdm import tqdm
 
 from mobsim.env import Environment
 from scipy.spatial.distance import pdist, squareform
+
+from trackintel.geogr.distances import calculate_distance_matrix
 
 
 class EPR:
@@ -15,9 +17,7 @@ class EPR:
         self.env = env
 
         # precalculate distance between location pairs
-        coord_list = [[x, y] for x, y in zip(self.env.loc_gdf["center"].x, self.env.loc_gdf["center"].y)]
-        Y = pdist(coord_list, "euclidean")
-        self.pair_distance = squareform(Y)
+        self.pair_distance = calculate_distance_matrix(self.env.loc_gdf, dist_metric="haversine")
 
         self.traj = {}
 
@@ -25,7 +25,7 @@ class EPR:
         # get the user_id for generation
         user_arr = np.random.choice(self.env.top_user_loc_df["user_id"].unique(), pop_num)
 
-        for i in range(pop_num):
+        for i in tqdm(range(pop_num), desc="Generating users"):
             res = self.simulate_agent(user_arr[i], seq_len)
 
             self.traj[i] = {}
@@ -126,24 +126,28 @@ class DEpr(EPR):
 
     def __init__(self, env: Environment, *args, **kwargs):
         super().__init__(env, *args, **kwargs)
-        self.env = env
+        # constructing the location visitation frequency for density epr
+        loc_freq = self.env.loc_gdf.set_index("id").join(
+            self.env.loc_seq_df.groupby("location_id").size().to_frame("freq")
+        )
+        # we assign never visited locations a small value, such that they can also be visited
+        self.attr = loc_freq.fillna(0.1)["freq"].values
 
     def explore(self, visited_loc):
         """The exploration step of the density epr model."""
-        attr = self.env.loc_gdf.copy()["count"].values
 
         curr_loc = int(visited_loc[-1])
-        curr_attr = attr[curr_loc]
+        curr_attr = self.attr[curr_loc]
 
         # delete the already visited locations
-        all_loc = set(visited_loc)
-        remain_idx = np.arange(attr.shape[0])
-        remain_idx = np.delete(remain_idx, list(all_loc))
+        uniq_visited_loc = set(visited_loc)
+        remain_idx = np.arange(self.attr.shape[0])
+        remain_idx = np.delete(remain_idx, list(uniq_visited_loc))
 
         # slight modification, original **2, and we changed to 1.7
         r = (self.pair_distance[curr_loc, remain_idx] / 1000) ** (1.7)
         # we also take the square root to reduce the density effect, otherwise too strong
-        attr = np.power((attr[remain_idx] * curr_attr), 0.5).astype(float)
+        attr = np.power((self.attr[remain_idx] * curr_attr), 0.5).astype(float)
 
         # the density attraction + inverse distance
         attr = np.divide(attr, r, out=np.zeros_like(attr), where=r != 0)
@@ -163,7 +167,7 @@ class IPT(EPR):
 
     def build_emperical_markov_matrix(self):
         # initialize trans matrix with 0's
-        loc_size = self.env.loc_seq_df["location_id"].max() + 1
+        loc_size = self.env.loc_gdf["id"].max() + 1
         trans_matrix = np.zeros([loc_size, loc_size])
 
         def _get_user_transition_ls(df):
@@ -181,42 +185,21 @@ class IPT(EPR):
         for tran in tran_ls:
             trans_matrix[tran[0], tran[1]] += 1
 
-        return trans_matrix.astype(np.int16)
+        return trans_matrix.astype(np.int32)
 
-    def simulate_agent_step(self, user, loc_ls, rho, gamma):
-        if len(loc_ls) == 0:  # init
-            next_loc = self.get_init_loc(user)
-        else:  # or generate
-            # the prob. of exploring
-            if self.env.config["P"] != 0:
-                # hard intervention to P
-                if_explore = self.env.config["P"]
-            else:
-                # the prob. of exploring
-                if_explore = rho * len(np.unique(loc_ls)) ** (-gamma)
-
-            if (np.random.rand() < if_explore) or (len(loc_ls) == 1):
-                # explore
-                next_loc = self.explore(visited_loc=loc_ls)
-            else:
-                self.trans_matrix, next_loc = self.pref_return(visited_loc=loc_ls, emp_mat=self.trans_matrix)
-
-        return next_loc
-
-    def pref_return(self, visited_loc, emp_mat):
+    def pref_return(self, visited_loc):
         # not able to return to the current location
         visited_loc = np.array(visited_loc)
         curr_loc = visited_loc[-1]
 
         # delete the current location from the sequence
         currloc_idx = np.where(visited_loc == curr_loc)[0]
-
         # ensure the deleted sequence contain value
         if len(currloc_idx) != len(visited_loc):
             visited_loc = np.delete(visited_loc, currloc_idx)
 
         # get the transition p from emperical matrix
-        curr_trans_p = emp_mat[curr_loc, :]
+        curr_trans_p = self.trans_matrix[curr_loc, :]
         curr_trans_p = curr_trans_p[np.array(visited_loc)]
 
         # equal p if no prior knowledge
@@ -228,9 +211,9 @@ class IPT(EPR):
         # choose next location according to emperical p
         next_loc = np.random.choice(visited_loc, p=curr_trans_p)
         # update
-        emp_mat[curr_loc, next_loc] += 1
+        self.trans_matrix[curr_loc, next_loc] += 1
 
-        return emp_mat, next_loc
+        return next_loc
 
 
 class DTEpr(EPR):
@@ -240,9 +223,16 @@ class DTEpr(EPR):
         super().__init__(env, *args, **kwargs)
         self.trans_matrix = self.build_emperical_markov_matrix()
 
+        # constructing the location visitation frequency for density epr
+        loc_freq = self.env.loc_gdf.set_index("id").join(
+            self.env.loc_seq_df.groupby("location_id").size().to_frame("freq")
+        )
+        # we assign never visited locations a small value, such that they can also be visited
+        self.attr = loc_freq.fillna(0.1)["freq"].values
+
     def build_emperical_markov_matrix(self):
         # initialize trans matrix with 0's
-        loc_size = self.env.loc_seq_df["location_id"].max() + 1
+        loc_size = self.env.loc_gdf["id"].max() + 1
         trans_matrix = np.zeros([loc_size, loc_size])
 
         def _get_user_transition_ls(df):
@@ -260,44 +250,22 @@ class DTEpr(EPR):
         for tran in tran_ls:
             trans_matrix[tran[0], tran[1]] += 1
 
-        return trans_matrix.astype(np.int16)
-
-    def simulate_agent_step(self, user, loc_ls, rho, gamma):
-        if len(loc_ls) == 0:  # init
-            next_loc = self.get_init_loc(user)
-        else:  # or generate
-            # the prob. of exploring
-            if self.env.config["P"] != 0:
-                # hard intervention to P
-                if_explore = self.env.config["P"]
-            else:
-                # the prob. of exploring
-                if_explore = rho * len(np.unique(loc_ls)) ** (-gamma)
-
-            if (np.random.rand() < if_explore) or (len(loc_ls) == 1):
-                # explore
-                next_loc = self.explore(visited_loc=loc_ls)
-            else:
-                self.trans_matrix, next_loc = self.pref_return(visited_loc=loc_ls, emp_mat=self.trans_matrix)
-
-        return next_loc
+        return trans_matrix.astype(np.int32)
 
     def explore(self, visited_loc):
         """The exploration step of the density epr model."""
-        attr = self.env.loc_gdf.copy()["count"].values
-
         curr_loc = int(visited_loc[-1])
-        curr_attr = attr[curr_loc]
+        curr_attr = self.attr[curr_loc]
 
         # delete the already visited locations
-        all_loc = set(visited_loc)
-        remain_idx = np.arange(attr.shape[0])
-        remain_idx = np.delete(remain_idx, list(all_loc))
+        uniq_visited_loc = set(visited_loc)
+        remain_idx = np.arange(self.attr.shape[0])
+        remain_idx = np.delete(remain_idx, list(uniq_visited_loc))
 
         # slight modification, original **2, and we changed to 1.7
         r = (self.pair_distance[curr_loc, remain_idx] / 1000) ** (1.7)
         # we also take the square root to reduce the density effect, otherwise too strong
-        attr = np.power((attr[remain_idx] * curr_attr), 0.5).astype(float)
+        attr = np.power((self.attr[remain_idx] * curr_attr), 0.5).astype(float)
 
         # the density attraction + inverse distance
         attr = np.divide(attr, r, out=np.zeros_like(attr), where=r != 0)
@@ -307,7 +275,7 @@ class DTEpr(EPR):
         selected_loc = np.random.choice(attr.shape[0], p=attr)
         return remain_idx[selected_loc]
 
-    def pref_return(self, visited_loc, emp_mat):
+    def pref_return(self, visited_loc):
         # not able to return to the current location
         visited_loc = np.array(visited_loc)
         curr_loc = visited_loc[-1]
@@ -319,7 +287,7 @@ class DTEpr(EPR):
             visited_loc = np.delete(visited_loc, currloc_idx)
 
         # get the transition p from emperical matrix
-        curr_trans_p = emp_mat[curr_loc, :]
+        curr_trans_p = self.trans_matrix[curr_loc, :]
         curr_trans_p = curr_trans_p[np.array(visited_loc)]
 
         # equal p if no prior knowledge
@@ -331,37 +299,34 @@ class DTEpr(EPR):
         # choose next location according to emperical p
         next_loc = np.random.choice(visited_loc, p=curr_trans_p)
         # update
-        emp_mat[curr_loc, next_loc] += 1
+        self.trans_matrix[curr_loc, next_loc] += 1
 
-        return emp_mat, next_loc
+        return next_loc
 
 
 def post_process(traj, loc_gdf):
-    def _get_result_user_df(user_seq, loc_gdf):
+    def _get_result_user_df(user_seq):
         user_seq_df = pd.DataFrame(user_seq["loc_seq"], columns=["id"])
         user_seq_df["duration"] = user_seq["dur_seq"]
         user_seq_df["ori_user_id"] = user_seq["user"]
 
-        return_gdf = user_seq_df.reset_index().merge(loc_gdf, on="id", sort=False)
-
-        # preserve simulation order
-        return return_gdf.sort_values("index").reset_index(drop=True).drop(columns="index")
+        return user_seq_df
 
     all_ls = []
     for i in range(len(traj)):
-        user_df = _get_result_user_df(traj[i], loc_gdf)
+        user_df = _get_result_user_df(traj[i])
         user_df["user_id"] = i
         all_ls.append(user_df)
 
     all_df = pd.concat(all_ls).reset_index()
 
-    all_gdf = gpd.GeoDataFrame(all_df, geometry="center", crs="EPSG:2056")
-    all_gdf = all_gdf.to_crs("EPSG:4326")
+    # merge the geometries and sort according to visit sequence
+    all_df = all_df.merge(loc_gdf, on="id", how="left", sort=False).sort_values(["user_id", "index"])
+
+    # transfer to geodataframe
+    all_gdf = gpd.GeoDataFrame(all_df, geometry="geometry", crs="EPSG:4326")
 
     # Final cleaning
-    # gdf without empirical visit frequency
-    all_gdf = all_gdf.drop(columns={"count"}).rename(
-        columns={"id": "location_id", "index": "sequence", "center": "geometry"}
-    )
+    all_gdf = all_gdf.rename(columns={"id": "location_id", "index": "sequence"})
 
     return all_gdf

@@ -25,14 +25,14 @@ if __name__ == "__main__":
         type=int,
         nargs="?",
         help="Population number to generate",
-        default="100",
+        default="1000",
     )
     parser.add_argument(
         "seq_len",
         type=int,
         nargs="?",
         help="Length of generated location sequence for each user",
-        default="1000",
+        default="200",
     )
     parser.add_argument(
         "model",
