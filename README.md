@@ -35,9 +35,23 @@ Parameters determined from empirical data is stored in `example/config.yml` file
 
 Outputs location visit sequences with activity duration of a specified length (default 200) for a set of individuals (default 100). 
 
+## Preprocessing from GNSS tracking dataset
+We provide preprocessing script that includes necessary steps to transfer a GNSS tracking dataset into the required input file formats and obtain the parameters of empirical distributions for mobility simulation. We assume the raw tracking dataset contains stay points and triplegs (stages), and the processing script (`example/preprocess_tracking.py`) includes the following steps:
+- Read staypoints and triplegs, and transforms them into trackintel compatible format.
+- Calculate the tracking quality per user.
+- Filter user with a minimum tracking quality. 
+- Include only the records that occur within a geographical boundary (requires boundary shp). 
+- Generate locations from staypoints
+- Merge staypoints that occur close in time.
+- Save locations and location transitions (input data for mobility simulation).
+- Obtain the best fitting jump length distribution and wait time distribution (parameters for mobility simulation).
+- Obtain the normal distribution parameters for gamma and rho (parameters for mobility simulation).
+
+The generated locations and location transitions files will be save in the `./data/input/` folder.
+
 
 ## Known issues:
-- This package requires geopandas dependency, which is best installed via conda-forge; thus I included an environment file. 
+- This package requires geopandas dependency, which is best installed via conda-forge. 
 - pref_return for ipt needs personal empirical markov matrix. Currently we maintain a single matrix for the whole dataset. For GC this is less of an issue, as GC individuals do not often share locations. 
 
 ## TODO:

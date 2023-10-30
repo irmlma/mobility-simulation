@@ -1,4 +1,6 @@
 data/output/
+data/quality/
+data/bound/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
