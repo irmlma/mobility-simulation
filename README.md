@@ -25,7 +25,7 @@ pip install -e .
 Run 
 
 ```
-python example/run.py
+python mobsim/scripts/run.py
 ```
 for generating synthetic location traces. We support epr, ipt, density-epr and dt-epr models. Outputs location visit sequences with activity duration of a specified length (default 200 steps) for a set of individuals (default 100). 
 

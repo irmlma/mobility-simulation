@@ -43,7 +43,7 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    env = Environment(os.path.join("example", "config.yml"))
+    env = Environment(os.path.join("config", "config.yml"))
     if args.model == "epr":
         simulator = EPR(env)
     elif args.model == "ipt":

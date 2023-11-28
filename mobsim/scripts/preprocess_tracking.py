@@ -371,9 +371,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("epsilon", type=int, nargs="?", help="epsilon for dbscan to detect locations", default=20)
     parser.add_argument("num_pts", type=int, nargs="?", help="num_samples for dbscan to detect locations", default=1)
-    parser.add_argument(
-        "raw_data_dir", type=str, nargs="?", help="dir for data storage", default="D:/SBBGC1/raw_re_trip"
-    )
+    parser.add_argument("raw_data_dir", type=str, nargs="?", help="dir for data storage", default="./data/raw_re_trip")
     parser.add_argument(
         "bound_file",
         type=str,
