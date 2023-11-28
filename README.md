@@ -59,3 +59,22 @@ The generated locations and location transitions files will be save in the `./da
 
 ## TODO:
 None
+
+## Citation
+If you find this code useful for your work or use it in your project, please consider citing:
+
+```shell
+@misc{hong_revealing_2023,
+    title={Revealing behavioral impact on mobility prediction networks through causal interventions},
+    author={Hong, Ye and Xin, Yanan and Dirmeier, Simon and Perez-Cruz, Fernando and Raubal, Martin},
+    publisher={arXiv},
+    year={2023},
+    url = {https://arxiv.org/abs/2311.11749},
+    doi = {10.48550/arXiv.2311.11749},
+}
+```
+
+## Contact
+If you have any questions, please open an issue or let me know: 
+- Ye Hong {hongy@ethz.ch}
+
