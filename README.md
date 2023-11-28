@@ -27,34 +27,36 @@ Run
 ```
 python example/run.py
 ```
-for generating synthetic location traces. 
-
+for generating synthetic location traces. We support epr, ipt, density-epr and dt-epr models. Outputs location visit sequences with activity duration of a specified length (default 200 steps) for a set of individuals (default 100). 
 
 ## Input and output
 
-Required input files for Environment:
-- Location visit sequence (empirical); csv file with columns `[user_id, location_id]`, row order shall follow visit sequence. Used for building the emperical markov matrix for IPT during preferential return. 
-- Location with geometry and visitation freqency (empirical); csv file with columns `[id, geometry]`. `geometry` shall be in `wkt` format in latitude, longitude format in WGS1984 (`EPSG:4326` projection), e.g., `POINT (8.52244 47.38777)`. Used for calculating distanced between locations, and determining the attractiveness for each location for the density-EPR model during exploration. 
+Required input files for running the generation, ideally obtained from empirical tracking dataset:
 
-`./data/input/` folder contains demo data for running the simulation. 
+- Location with geometry and visitation freqency: csv file with columns `[id, geometry]`. `geometry` shall be in `wkt` format in latitude, longitude format in WGS1984 (`EPSG:4326` projection), e.g., `POINT (8.52244 47.38777)`. Required for calculating distanced between locations, and determining the attractiveness for each location for the density-EPR model during exploration. 
+- Location visit sequence: csv file with columns `[user_id, location_id]`, row order shall follow the visited sequence. Required for building the emperical markov matrix for the IPT model during preferential return. 
 
 Required parameters for simulation:
-- wait time distribution: log-normal, power-law or truncated power law with corresponding parameters.
-- jump length distribution: log-normal, power-law or truncated power law with corresponding parameters.
+- Wait time distribution: log-normal, power-law or truncated power law with corresponding parameters.
+- Jump length distribution: log-normal, power-law or truncated power law with corresponding parameters.
 - Exploration parameters: gamma (normal distribution), rho (normal distribution) and p (default determined from gamma and rho). Setting p as a non-zero value will direct use p as exploration probability without using gamma and rho. 
 
-Parameters determined from empirical data is stored in `example/config.yml` file.
+Default parameters are determined from the SBB Green Class (GC) dataset, and are stored in `example/config.yml` file.
 
-Outputs location visit sequences with activity duration of a specified length (default 200) for a set of individuals (default 100). 
+### Synthetic dataset
+
+`./data/input/` folder contains demo data for running the simulation, which is generated using the trajectories from GC dataset. Specifically, locations from the GC dataset are projected into the level 13 grid of s2geometry, and the location transition sequence is obtained through forward simulation using the provided DT-EPR model. 
+
 
 ## Preprocessing from GNSS tracking dataset
-We provide preprocessing script that includes necessary steps to transfer a GNSS tracking dataset into the required input file formats and obtain the parameters of empirical distributions for mobility simulation. We assume the raw tracking dataset contains stay points and triplegs (also called stages, representing continuous movement without changing mode, vehicle or stopping), and the processing script (`example/preprocess_tracking.py`) includes the following steps:
+
+We provide preprocessing script that includes necessary steps to transfer a GNSS tracking dataset into required input file formats and obtain parameters of empirical distributions for mobility simulation. We assume the raw tracking dataset contains stay points and triplegs (also called stages, representing continuous movement without changing mode, vehicle or stopping), and the processing script (`example/preprocess_tracking.py`) includes the following steps:
 - Read staypoints and triplegs, and transforms them into trackintel compatible format.
-- Calculate the tracking quality per user.
-- Filter user with a minimum tracking quality. 
+- Calculate the temporal tracking quality per user.
+- Filter user: include only users with sufficient high tracking quality. 
 - Include only the records that occur within a geographical boundary (requires boundary shp). 
-- Generate locations from staypoints
-- Merge staypoints that occur close in time.
+- Generate locations from staypoints. 
+- Merge staypoints that occur close in time and belong to the same location.
 - Save locations and location transitions (input data for mobility simulation).
 - Obtain the best fitting jump length distribution and wait time distribution (parameters for mobility simulation).
 - Obtain the normal distribution parameters for gamma and rho (parameters for mobility simulation).
@@ -82,6 +84,6 @@ If you find this code useful for your work or use it in your project, please con
 ```
 
 ## Contact
-If you have any questions, please open an issue or let me know: 
+If you have any questions, open an issue or let me know: 
 - Ye Hong {hongy@ethz.ch}
 
