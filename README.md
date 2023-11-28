@@ -1,11 +1,21 @@
-# mobility-simulation
+# Individual mobility simulation models
 
 [![arXiv](https://img.shields.io/badge/arXiv-2311.11749-b31b1b.svg)](https://arxiv.org/abs/2311.11749)
 
 
-## Install
+## Requirements, dependencies and installation
+This code has been tested on
 
-Install the package in edit mode using:
+- Python 3.10, trackintel 1.2.2, geopandas 0.13.2
+
+To create a virtual environment and install the required dependencies, please run the following:
+```shell
+git clone https://github.com/irmlma/mobility-simulation.git
+cd mobility-simulation
+conda env create -f environment.yml
+conda activate mobsim
+```
+in your working folder. You can then install the package in edit mode using:
 ```
 pip install -e .
 ```
@@ -18,7 +28,6 @@ Run
 python example/run.py
 ```
 for generating synthetic location traces. 
-
 
 
 ## Input and output
@@ -39,7 +48,7 @@ Parameters determined from empirical data is stored in `example/config.yml` file
 Outputs location visit sequences with activity duration of a specified length (default 200) for a set of individuals (default 100). 
 
 ## Preprocessing from GNSS tracking dataset
-We provide preprocessing script that includes necessary steps to transfer a GNSS tracking dataset into the required input file formats and obtain the parameters of empirical distributions for mobility simulation. We assume the raw tracking dataset contains stay points and triplegs (stages), and the processing script (`example/preprocess_tracking.py`) includes the following steps:
+We provide preprocessing script that includes necessary steps to transfer a GNSS tracking dataset into the required input file formats and obtain the parameters of empirical distributions for mobility simulation. We assume the raw tracking dataset contains stay points and triplegs (also called stages, representing continuous movement without changing mode, vehicle or stopping), and the processing script (`example/preprocess_tracking.py`) includes the following steps:
 - Read staypoints and triplegs, and transforms them into trackintel compatible format.
 - Calculate the tracking quality per user.
 - Filter user with a minimum tracking quality. 
@@ -52,9 +61,7 @@ We provide preprocessing script that includes necessary steps to transfer a GNSS
 
 The generated locations and location transitions files will be save in the `./data/input/` folder.
 
-
 ## Known issues:
-- This package requires geopandas dependency, which is best installed via conda-forge. 
 - pref_return for ipt needs personal empirical markov matrix. Currently we maintain a single matrix for the whole dataset. For GC this is less of an issue, as GC individuals do not often share locations. 
 
 ## TODO:
