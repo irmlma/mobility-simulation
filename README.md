@@ -64,7 +64,7 @@ We provide a preprocessing script that includes the necessary steps to transfer 
 The generated locations and location transitions files will be saved in the `data/input/` folder.
 
 ## Known issues:
-- pref_return for ipt needs a personal empirical Markov matrix. Currently, we maintain a single matrix for the whole dataset. For GC this is less of an issue, as GC individuals do not often share locations. 
+- Preferential return for ipt needs a personal empirical Markov matrix. Currently, we maintain a single matrix for the whole dataset. For GC this is less of an issue, as GC individuals do not often share locations. 
 
 ## TODO:
 None
