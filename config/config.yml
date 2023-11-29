@@ -44,3 +44,5 @@ gamma:
 P: 0.0
 
 data_dir: "./data/input"
+loc_seq_file: "loc_seq.csv"
+locs_file: "locs.csv"

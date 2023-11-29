@@ -14,7 +14,7 @@ class Environment:
         self.config = yaml.safe_load(open(config_path))
 
         # location visit sequence
-        self.loc_seq_df = pd.read_csv(os.path.join(self.config["data_dir"], "loc_seq.csv"))
+        self.loc_seq_df = pd.read_csv(os.path.join(self.config["data_dir"], self.config["loc_seq_file"]))
 
         # top location visited by each user (empirical)
         # for determining the start location for simulation, we choose the top 5 as possible locations
@@ -27,7 +27,7 @@ class Environment:
         )
 
         # location with geom
-        loc_df = pd.read_csv(os.path.join(self.config["data_dir"], "locs.csv"))
+        loc_df = pd.read_csv(os.path.join(self.config["data_dir"], self.config["locs_file"]))
         loc_df["geometry"] = loc_df["geometry"].apply(wkt.loads)
         self.loc_gdf = gpd.GeoDataFrame(loc_df, geometry="geometry", crs="EPSG:4326")
 
