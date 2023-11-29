@@ -8,12 +8,11 @@ wait:
   mu: 0.75
   sigma: 1.49
 
-  # parameter for powerlaw
+  # parameter for both powerlaw (default 1.2) and truncpowerlaw (default 1.1)
   alpha: 1.2
 
   # parameters for truncpowerlaw
-  parameter1: 1.1
-  parameter2: 0.5
+  Lambda: 0.5
 
 jump:
   # could be lognormal, powerlaw or truncpowerlaw 
@@ -23,12 +22,11 @@ jump:
   mu: 7.72
   sigma: 2.38
 
-  # parameter for powerlaw
+  # parameter for both powerlaw (default 1.2) and truncpowerlaw (default 1.1)
   alpha: 1.2
 
   # parameters for truncpowerlaw
-  parameter1: 1.1
-  parameter2: 0.5
+  Lambda: 0.5
 
 rho:
   type: "normal"

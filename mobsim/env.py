@@ -39,7 +39,7 @@ class Environment:
             return powerlaw.Power_Law(parameters=[self.config["wait"]["alpha"]]).generate_random(n=1)[0]
         elif self.config["wait"]["type"] == "truncpowerlaw":
             return powerlaw.Truncated_Power_Law(
-                parameters=[self.config["wait"]["parameter1"], self.config["wait"]["parameter2"]]
+                parameters=[self.config["wait"]["alpha"], self.config["wait"]["Lambda"]]
             ).generate_random(n=1)[0]
         else:
             raise AttributeError(
@@ -54,7 +54,7 @@ class Environment:
             return powerlaw.Power_Law(parameters=[self.config["jump"]["alpha"]]).generate_random(n=1)[0]
         elif self.config["jump"]["type"] == "truncpowerlaw":
             return powerlaw.Truncated_Power_Law(
-                parameters=[self.config["jump"]["parameter1"], self.config["jump"]["parameter2"]]
+                parameters=[self.config["jump"]["alpha"], self.config["jump"]["Lambda"]]
             ).generate_random(n=1)[0]
         else:
             raise AttributeError(
