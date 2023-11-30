@@ -127,7 +127,7 @@ class DEpr(EPR):
     def __init__(self, env: Environment, *args, **kwargs):
         super().__init__(env, *args, **kwargs)
         # constructing the location visitation frequency for density epr
-        loc_freq = self.env.loc_gdf.set_index("id").join(
+        loc_freq = self.env.loc_gdf.set_index("location_id").join(
             self.env.loc_seq_df.groupby("location_id").size().to_frame("freq")
         )
         # we assign never visited locations a small value, such that they can also be visited
@@ -167,7 +167,7 @@ class IPT(EPR):
 
     def build_emperical_markov_matrix(self):
         # initialize trans matrix with 0's
-        loc_size = self.env.loc_gdf["id"].max() + 1
+        loc_size = self.env.loc_gdf["location_id"].max() + 1
         trans_matrix = np.zeros([loc_size, loc_size])
 
         def _get_user_transition_ls(df):
@@ -224,7 +224,7 @@ class DTEpr(EPR):
         self.trans_matrix = self.build_emperical_markov_matrix()
 
         # constructing the location visitation frequency for density epr
-        loc_freq = self.env.loc_gdf.set_index("id").join(
+        loc_freq = self.env.loc_gdf.set_index("location_id").join(
             self.env.loc_seq_df.groupby("location_id").size().to_frame("freq")
         )
         # we assign never visited locations a small value, such that they can also be visited
@@ -232,7 +232,7 @@ class DTEpr(EPR):
 
     def build_emperical_markov_matrix(self):
         # initialize trans matrix with 0's
-        loc_size = self.env.loc_gdf["id"].max() + 1
+        loc_size = self.env.loc_gdf["location_id"].max() + 1
         trans_matrix = np.zeros([loc_size, loc_size])
 
         def _get_user_transition_ls(df):
@@ -306,7 +306,7 @@ class DTEpr(EPR):
 
 def post_process(traj, loc_gdf):
     def _get_result_user_df(user_seq):
-        user_seq_df = pd.DataFrame(user_seq["loc_seq"], columns=["id"])
+        user_seq_df = pd.DataFrame(user_seq["loc_seq"], columns=["location_id"])
         user_seq_df["duration"] = user_seq["dur_seq"]
         user_seq_df["ori_user_id"] = user_seq["user"]
 
@@ -321,12 +321,12 @@ def post_process(traj, loc_gdf):
     all_df = pd.concat(all_ls).reset_index()
 
     # merge the geometries and sort according to visit sequence
-    all_df = all_df.merge(loc_gdf, on="id", how="left", sort=False).sort_values(["user_id", "index"])
+    all_df = all_df.merge(loc_gdf, on="location_id", how="left", sort=False).sort_values(["user_id", "index"])
 
     # transfer to geodataframe
     all_gdf = gpd.GeoDataFrame(all_df, geometry="geometry", crs="EPSG:4326")
 
     # Final cleaning
-    all_gdf = all_gdf.rename(columns={"id": "location_id", "index": "sequence"})
+    all_gdf = all_gdf.rename(columns={"index": "sequence"})
 
     return all_gdf
