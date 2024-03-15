@@ -2,6 +2,8 @@ data/output/
 data/quality/
 data/bound/
 
+credentials.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

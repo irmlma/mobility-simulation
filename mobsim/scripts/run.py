@@ -17,7 +17,7 @@ def setup_seed(seed):
 
 
 if __name__ == "__main__":
-    setup_seed(0)
+    setup_seed(1)
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -25,14 +25,14 @@ if __name__ == "__main__":
         type=int,
         nargs="?",
         help="Population number to generate",
-        default="100",
+        default="1000",
     )
     parser.add_argument(
         "seq_len",
         type=int,
         nargs="?",
         help="Length of generated location sequence for each user",
-        default="200",
+        default="1000",
     )
     parser.add_argument(
         "model",
