@@ -6,7 +6,7 @@
 ## Requirements, dependencies, and installation
 This code has been tested on
 
-- Python 3.10, trackintel 1.2.2, geopandas 0.13.2
+- Python 3.10, trackintel 1.2.4, geopandas 0.13.2
 
 To create a virtual environment and install the required dependencies, please run the following:
 ```shell

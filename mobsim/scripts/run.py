@@ -32,11 +32,11 @@ if __name__ == "__main__":
         type=int,
         nargs="?",
         help="Length of generated location sequence for each user",
-        default="1000",
+        default="100",
     )
     parser.add_argument(
         "model",
-        default="epr",
+        default="dtepr",
         nargs="?",
         choices=["epr", "ipt", "depr", "dtepr"],
         help="Individual mobility model for generation (default: %(default)s)",

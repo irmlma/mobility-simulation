@@ -34,6 +34,7 @@ class Environment:
             else:
                 login_user = credentials.sensitive_user
                 schema = "sensitive"
+                self.dist_metric = "euclidean"
 
             engine = sqlalchemy.create_engine(
                 f"postgresql://{login_user}:{credentials.password}@{credentials.host}:{credentials.port}/{credentials.database}"
@@ -42,6 +43,8 @@ class Environment:
             with engine.connect() as conn:
                 loc_gdf = gpd.read_postgis(text(f"SELECT * FROM {schema}.locs"), conn, geom_col="geometry")
                 loc_seq_df = pd.read_sql(text(f"SELECT * FROM {schema}.loc_seq"), conn)
+
+            engine.dispose()
 
         else:
             loc_seq_df = pd.read_csv(os.path.join(self.config["data_dir"], self.config["loc_seq_file"]))
