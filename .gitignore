@@ -3,6 +3,7 @@ data/quality/
 data/bound/
 
 credentials.json
+*_sensitive.csv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
