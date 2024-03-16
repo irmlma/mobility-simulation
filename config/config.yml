@@ -1,4 +1,14 @@
 
+# True reading from db, false reading from data_dir
+database: True
+# simulated, whether to use simulated or real data
+simulated: True
+
+data_dir: "./data/input"
+loc_seq_file: "loc_seq.csv"
+locs_file: "locs.csv"
+
+
 # parameters from empirical distribution
 wait:
   # could be lognormal, powerlaw or truncpowerlaw 
@@ -40,7 +50,3 @@ gamma:
 
 # shall be within [0, 1]; change to non 0 value to perform hard interventions
 P: 0.0
-
-data_dir: "./data/input"
-loc_seq_file: "loc_seq.csv"
-locs_file: "locs.csv"

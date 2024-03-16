@@ -169,18 +169,10 @@ class IPT(EPR):
         # initialize trans matrix with 0's
         loc_size = self.env.loc_gdf["location_id"].max() + 1
         trans_matrix = np.zeros([loc_size, loc_size])
-
-        def _get_user_transition_ls(df):
-            ls = df["location_id"].values
-
-            res = []
-            for i in range(len(ls) - 1):
-                res.append([ls[i], ls[i + 1]])
-
-            return res
-
         # transform transition list to matrix
-        tran_ls = self.env.loc_seq_df.groupby("user_id").apply(_get_user_transition_ls)
+        tran_ls = self.env.loc_seq_df.groupby("user_id").apply(
+            lambda x: np.lib.stride_tricks.sliding_window_view(x["location_id"].values, 2)
+        )
         tran_ls = [x for xs in tran_ls.values for x in xs]
         for tran in tran_ls:
             trans_matrix[tran[0], tran[1]] += 1
@@ -235,17 +227,10 @@ class DTEpr(EPR):
         loc_size = self.env.loc_gdf["location_id"].max() + 1
         trans_matrix = np.zeros([loc_size, loc_size])
 
-        def _get_user_transition_ls(df):
-            ls = df["location_id"].values
-
-            res = []
-            for i in range(len(ls) - 1):
-                res.append([ls[i], ls[i + 1]])
-
-            return res
-
         # transform transition list to matrix
-        tran_ls = self.env.loc_seq_df.groupby("user_id").apply(_get_user_transition_ls)
+        tran_ls = self.env.loc_seq_df.groupby("user_id").apply(
+            lambda x: np.lib.stride_tricks.sliding_window_view(x["location_id"].values, 2)
+        )
         tran_ls = [x for xs in tran_ls.values for x in xs]
         for tran in tran_ls:
             trans_matrix[tran[0], tran[1]] += 1

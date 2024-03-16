@@ -36,7 +36,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "model",
-        default="dtepr",
+        default="epr",
         nargs="?",
         choices=["epr", "ipt", "depr", "dtepr"],
         help="Individual mobility model for generation (default: %(default)s)",

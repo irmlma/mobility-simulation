@@ -7,14 +7,52 @@ import os
 import powerlaw
 
 import yaml
+import sqlalchemy
+from sqlalchemy import text
+from sqlalchemy.pool import NullPool
+import psycopg2
+import json
+
+from easydict import EasyDict as edict
 
 
 class Environment:
     def __init__(self, config_path):
         self.config = yaml.safe_load(open(config_path))
+        self.config = edict(self.config)
 
         # location visit sequence
-        self.loc_seq_df = pd.read_csv(os.path.join(self.config["data_dir"], self.config["loc_seq_file"]))
+        if self.config.database:
+            credentials = os.path.join(".", "credentials.json")
+            with open(credentials) as file:
+                credentials = json.load(file)
+            credentials = edict(credentials)
+
+            if self.config.simulated:
+                login_user = credentials.save_user
+                schema = "simulated"
+            else:
+                login_user = credentials.sensitive_user
+                schema = "sensitive"
+
+            engine = sqlalchemy.create_engine(
+                f"postgresql://{login_user}:{credentials.password}@{credentials.host}:{credentials.port}/{credentials.database}"
+            )
+
+            with engine.connect() as conn:
+                loc_gdf = gpd.read_postgis(text(f"SELECT * FROM {schema}.locs"), conn, geom_col="geometry")
+                loc_seq_df = pd.read_sql(text(f"SELECT * FROM {schema}.loc_seq"), conn)
+
+        else:
+            loc_seq_df = pd.read_csv(os.path.join(self.config["data_dir"], self.config["loc_seq_file"]))
+
+            # location with geom
+            loc_df = pd.read_csv(os.path.join(self.config["data_dir"], self.config["locs_file"]))
+            loc_df["geometry"] = loc_df["geometry"].apply(wkt.loads)
+            loc_gdf = gpd.GeoDataFrame(loc_df, geometry="geometry", crs="EPSG:4326")
+
+        self.loc_gdf = loc_gdf
+        self.loc_seq_df = loc_seq_df
 
         # top location visited by each user (empirical)
         # for determining the start location for simulation, we choose the top 5 as possible locations
@@ -25,11 +63,6 @@ class Environment:
             .groupby(["user_id"])
             .head(5)
         )
-
-        # location with geom
-        loc_df = pd.read_csv(os.path.join(self.config["data_dir"], self.config["locs_file"]))
-        loc_df["geometry"] = loc_df["geometry"].apply(wkt.loads)
-        self.loc_gdf = gpd.GeoDataFrame(loc_df, geometry="geometry", crs="EPSG:4326")
 
     def get_wait_time(self):
         """Wait time (duration) distribution. Emperically determined from data."""
