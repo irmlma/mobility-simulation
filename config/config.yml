@@ -1,12 +1,15 @@
 
 # True reading from db, false reading from data_dir
 database: True
-# simulated, whether to use simulated or real data
+# True: use simulated data, False: use real data 
 simulated: True
 
 data_dir: "./data/input"
 loc_seq_file: "loc_seq.csv"
 locs_file: "locs.csv"
+
+# optionally input projected coordinate system for speed up calculation 
+proj_crs: "" # None or "EPSG:2056" etc.
 
 
 # parameters from empirical distribution

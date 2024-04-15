@@ -21,6 +21,11 @@ class Environment:
         self.config = yaml.safe_load(open(config_path))
         self.config = edict(self.config)
 
+        if self.config.proj_crs in ["None", "none", ""]:
+            self.proj_crs = None
+        else:
+            self.proj_crs = self.config.proj_crs
+
         # location visit sequence
         if self.config.database:
             credentials = os.path.join(".", "credentials.json")
@@ -34,7 +39,6 @@ class Environment:
             else:
                 login_user = credentials.sensitive_user
                 schema = "sensitive"
-                self.dist_metric = "euclidean"
 
             engine = sqlalchemy.create_engine(
                 f"postgresql://{login_user}:{credentials.password}@{credentials.host}:{credentials.port}/{credentials.database}"

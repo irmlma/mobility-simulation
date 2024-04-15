@@ -18,9 +18,9 @@ class EPR:
         self.env = env
 
         # precalculate distance between location pairs
-        if self.env.dist_metric == "euclidean":
+        if self.env.proj_crs is not None:
             # the projection of Switzerland: for accurately determine the distance between two locations
-            self.env.loc_gdf = self.env.loc_gdf.to_crs("EPSG:2056")
+            self.env.loc_gdf = self.env.loc_gdf.to_crs(self.env.proj_crs)
             self.pair_distance = calculate_distance_matrix(self.env.loc_gdf, n_jobs=-1, dist_metric="euclidean")
             self.env.loc_gdf = self.env.loc_gdf.to_crs("EPSG:4326")
         else:
